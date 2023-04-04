@@ -2,9 +2,9 @@ import PyPDF2 as pypdf #pip install PyPDF2
 import os
 #********************************************************************************#
 def processa_retorna_array_arquivos(caminho):
-    print(' ')
-    print('######### Processa arquivos do caminho: ' + caminho)
-    print(' ')
+    #print(' ')
+    #print('######### Processa arquivos do caminho: ' + caminho)
+    #print(' ')
     processa_transforma_arquivos_pdf(caminho)
     
 
@@ -15,9 +15,14 @@ def processa_transforma_arquivos_pdf(caminho):
     arquivos_pdf = pega_arquivos_pdf(caminho) 
     #print(pypdf.__version__)
     for arquivo_pdf in arquivos_pdf:
+        conteudo_arquivo = []
         with open(caminho+arquivo_pdf, 'rb') as pdf_aberto:
             arquivo_lido = pypdf.PdfReader(pdf_aberto)
-            print(len(arquivo_lido.pages))
+            for numero_pagina in range(len(arquivo_lido.pages)):
+                print(arquivo_lido.pages[numero_pagina].extract_text())
+                
+            
+    print(conteudo_arquivo)
             #for pagina in arquivo_lido.pages():
                 #print(pagina)
             #print(arquivo_lido.metadata.author)
