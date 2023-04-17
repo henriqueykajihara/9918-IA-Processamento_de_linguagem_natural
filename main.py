@@ -57,7 +57,9 @@ def main():
                     read_pdf.processa_transforma_arquivos_pdf( opcao, destino_txt )
                     input("Pressione uma tecla para continuar...")
                 elif opcao_processamento == '2':
-                    read_pdf.page_rank(destino_txt)
+                    palavra_procurada = input("Digite a palavra desejada:")
+                    read_pdf.page_rank(destino_txt, palavra_procurada)
+                    input("Pressione uma tecla para continuar...")
                 elif opcao_processamento == '0':
                     nivel = 99
                     continue

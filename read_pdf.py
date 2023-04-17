@@ -1,17 +1,20 @@
 import PyPDF2 as pypdf
 import os
 import spacy
+import re
 from spacy.lang.en import English
 from spacy.matcher import PhraseMatcher
 
 POSICAO_PALAVRA  = 0
 POSICAO_CONTADOR = 1
+ARQUIVO_PDF = 'pdf'
+ARQUIVO_TXT = 'txt'
 
 #********************************************************************************#
 def processa_transforma_arquivos_pdf(caminho, destino_txt):
 
     arquivos_processados = []
-    arquivos_pdf = pega_arquivos_pdf(caminho) 
+    arquivos_pdf = pega_arquivos(caminho, ARQUIVO_PDF) 
     if not cria_diretorio(destino_txt):
         return
     arquivos_sucesso = []
@@ -55,12 +58,12 @@ def processa_transforma_arquivos_pdf(caminho, destino_txt):
                             is_introducao = False
                         if is_introducao:
                             texto_introducao += linha + '\n'
-#ESCREVE TODO O TEXTO NESTE PONTO
+                    #ESCREVE TODO O TEXTO NESTE PONTO
                         texto_inteiro += linha+ '\n'
                         adiciona_lista_palavras(palavras_recorrentes, linha)
                         adiciona_lista_palavras(palavras_recorrentes_arquivo, linha)
                     else:
-#ADICIONA O TEXTO DE REFERÊNCIAS SÓ PARA TESTAR DEPOIS
+                    #ADICIONA O TEXTO DE REFERÊNCIAS SÓ PARA TESTAR DEPOIS
                         texto_referencias += linha + '\n'
 
             encontrou_tudo = True
@@ -88,12 +91,13 @@ def processa_transforma_arquivos_pdf(caminho, destino_txt):
                 print("CONTRIBUTES TO - INFORMATION NOT FOUND")
                 encontrou_tudo = False
 
-            texto_formatado = formata_informacoes_para_escrever(objetivo, problema, metodologia, contribuicao, palavras_recorrentes_arquivo)
+            top10_palavras_recorrentes = rank_top10(palavras_recorrentes_arquivo)
+            texto_formatado = formata_informacoes_para_escrever(objetivo, problema, metodologia, contribuicao, top10_palavras_recorrentes)
             nome_arquivo = pega_nome_arquivo(arquivo_lido, destino_txt)
             escreve_conteudo_em_arquivo_txt(nome_arquivo, texto_formatado)
             if encontrou_tudo:
                 arquivos_sucesso.append(nome_arquivo)
-            
+    
     mostra_top_10(palavras_recorrentes)              
     print( str(len(arquivos_sucesso))+' arquivos lidos com sucesso')
     
@@ -102,11 +106,12 @@ def processa_transforma_arquivos_pdf(caminho, destino_txt):
 
 #********************************************************************************#
 def formata_informacoes_para_escrever(objetivo, problema, metodologia, contribuicao, palavras_recorrentes_arquivo):
-    texto_formatado = 'Objetivo: '+ objetivo[0] + ';;\n'
+    texto_formatado = retorna_palavras_recorrentes_formatado(palavras_recorrentes_arquivo)
+    texto_formatado += 'Objetivo: '+ objetivo[0] + ';;\n'
     texto_formatado += 'Problema: '+ problema[0] + ';;\n'
     texto_formatado += 'Metodologia: '+ metodologia[0] + ';;\n'
     texto_formatado += 'Contribuicao: '+ contribuicao[0] + ';;\n'
-    texto_formatado += retorna_palavras_recorrentes_formatado(palavras_recorrentes_arquivo)
+    
     return texto_formatado
 
 #********************************************************************************#
@@ -114,7 +119,7 @@ def retorna_palavras_recorrentes_formatado(palavras_recorrentes_arquivo):
     texto_formatado = ''
     for recorrente in palavras_recorrentes_arquivo:
         texto_formatado += "["+recorrente[POSICAO_PALAVRA]+", " +str(recorrente[POSICAO_CONTADOR])+"]"
-    return texto_formatado
+    return texto_formatado + ";;\n"
 
 #********************************************************************************#
 def retorna_informacoes_problemas(texto_introducao, texto_inteiro):
@@ -320,13 +325,15 @@ def replace_caracteres_invalido(texto_arquivo, string_replace):
     return novo_texto
 
 #********************************************************************************#
-def pega_arquivos_pdf(caminho):
+def pega_arquivos(caminho, tipo_arquivo):
     
     arquivos = os.listdir(caminho)
     arquivos_pdf = []
     
     for arquivo in arquivos:
-        if is_pdf(arquivo):
+        if tipo_arquivo == ARQUIVO_PDF and is_pdf(arquivo):
+            arquivos_pdf.append(arquivo)
+        if tipo_arquivo == ARQUIVO_TXT:
             arquivos_pdf.append(arquivo)
 
     return arquivos_pdf
@@ -340,9 +347,43 @@ def lista_vazia(lista):
     return len(lista) == 0
 
 #********************************************************************************#
-def page_rank():
-    return print("ta pra fazer")
+def page_rank(destino_txt, palavra_procurada):
+    
+    arquivos_txt = pega_arquivos(destino_txt, ARQUIVO_TXT) 
+    index_geral = []
+    for arquivo in arquivos_txt:
+        
+        with open(destino_txt+arquivo, 'r', encoding="utf-8") as txt_aberto:
+            #print("\n"+arquivo)
+            conteudo = txt_aberto.read()
+            index = conteudo.splitlines()[0]
+            lista_index = re.findall(r'\[(\w+), (\d+)\]', index)
+            palavras_encontradas = []
+            for classificacao in lista_index:
+                palavras_encontradas.append([classificacao[0], int(classificacao[1])] )
+            
+            index_geral.append([arquivo,palavras_encontradas])
+    
+    mostra_classificacao_se_palavra_encontrada(index_geral,palavra_procurada)
+    return 
 
+#********************************************************************************#
+def mostra_classificacao_se_palavra_encontrada(index_geral,palavra_procurada):
+    lista_encontrados = []
+    for arquivo_indice in index_geral:
+        #print(arquivo_indice[0])
+        for palavra_rank in arquivo_indice[1]:
+            if palavra_rank[0] == palavra_procurada:
+                lista_encontrados.append([ arquivo_indice[0], palavra_rank[1]])
+    if lista_vazia(lista_encontrados):
+        print("\nNão foram encontrados resultados para a busca da palavra: " + palavra_procurada)
+    else:
+        lista_ordenada = sorted(lista_encontrados,key=lambda x: x[1], reverse=True)
+        print( "\nForam encontrados " + str(len(lista_ordenada)) + " ocorrências da palavra '" + palavra_procurada +"'" )
+        for classificado in lista_ordenada:
+            print( str(classificado[1])+" ocorrências no arquivo: " +classificado[0])
+
+        
 #********************************************************************************#
 def cls():
     os.system('cls' if os.name=='nt' else 'clear')
