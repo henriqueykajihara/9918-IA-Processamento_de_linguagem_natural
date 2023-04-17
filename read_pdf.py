@@ -27,15 +27,15 @@ def processa_transforma_arquivos_pdf(caminho, destino_txt):
             total_paginas = len(arquivo_lido.pages)
             lista_texto_arquivo = []
             
-            texto_inteiro = ''            
+            
             for numero_pagina in range(total_paginas):
             
                 texto = arquivo_lido.pages[numero_pagina].extract_text()
                 lista_texto_arquivo.append(texto.splitlines())
-                texto_inteiro += texto
-
+                
+            texto_inteiro = ''            
             texto_referencias = ''    
-            texto_introducao = ''              
+            texto_introducao = ''  
             is_referencia = False 
             is_introducao = False   
             for pagina in lista_texto_arquivo:
@@ -45,7 +45,6 @@ def processa_transforma_arquivos_pdf(caminho, destino_txt):
                         is_referencia = True
 
                     if not is_referencia:
-                        
                         #RETIRANDO A INTRODUCAO DO TEXTO
                         if is_possivel_introducao(linha):
                             #print("INICIO INTRO: " + linha)
@@ -89,28 +88,34 @@ def processa_transforma_arquivos_pdf(caminho, destino_txt):
                 print("CONTRIBUTES TO - INFORMATION NOT FOUND")
                 encontrou_tudo = False
 
-            texto_formatado = formata_informacoes_para_escrever(objetivo, problema, metodologia, contribuicao)
+            texto_formatado = formata_informacoes_para_escrever(objetivo, problema, metodologia, contribuicao, palavras_recorrentes_arquivo)
             nome_arquivo = pega_nome_arquivo(arquivo_lido, destino_txt)
             escreve_conteudo_em_arquivo_txt(nome_arquivo, texto_formatado)
             if encontrou_tudo:
                 arquivos_sucesso.append(nome_arquivo)
             
-    mostra_top_10(palavras_recorrentes)
-                  
+    mostra_top_10(palavras_recorrentes)              
     print( str(len(arquivos_sucesso))+' arquivos lidos com sucesso')
-    for arquivo in arquivos_sucesso:
-        print(arquivo)
+    
 
     return arquivos_processados
 
 #********************************************************************************#
-def formata_informacoes_para_escrever(objetivo, problema, metodologia, contribuicao):
+def formata_informacoes_para_escrever(objetivo, problema, metodologia, contribuicao, palavras_recorrentes_arquivo):
     texto_formatado = 'Objetivo: '+ objetivo[0] + ';;\n'
     texto_formatado += 'Problema: '+ problema[0] + ';;\n'
     texto_formatado += 'Metodologia: '+ metodologia[0] + ';;\n'
     texto_formatado += 'Contribuicao: '+ contribuicao[0] + ';;\n'
-
+    texto_formatado += retorna_palavras_recorrentes_formatado(palavras_recorrentes_arquivo)
     return texto_formatado
+
+#********************************************************************************#
+def retorna_palavras_recorrentes_formatado(palavras_recorrentes_arquivo):
+    texto_formatado = ''
+    for recorrente in palavras_recorrentes_arquivo:
+        texto_formatado += "["+recorrente[POSICAO_PALAVRA]+", " +str(recorrente[POSICAO_CONTADOR])+"]"
+    return texto_formatado
+
 #********************************************************************************#
 def retorna_informacoes_problemas(texto_introducao, texto_inteiro):
 
@@ -158,7 +163,6 @@ def escreve_conteudo_em_arquivo_txt(nome_arquivo, texto_inteiro):
     with open(nome_arquivo, 'w', encoding='utf-8') as novo_arquivo:
         for linha in texto_inteiro:
             novo_arquivo.write(linha)
-        #novo_arquivo.write(";;")
 
 #********************************************************************************#
 def rank_top10(lista_palavras):
@@ -251,10 +255,6 @@ def is_palavra_irrelevante(palavra):
     return False
 
 #********************************************************************************#
-def segundo_valor(lista):
-    return lista[POSICAO_CONTADOR]
-
-#********************************************************************************#
 def palavra_adicionada(lista_palavras, palavra):
 
     for classificacao in lista_palavras:
@@ -318,11 +318,6 @@ def replace_caracteres_invalido(texto_arquivo, string_replace):
     novo_texto = novo_texto.replace( "/", string_replace )
     
     return novo_texto
-
-#********************************************************************************#
-def processa_paginas_pdf(arquivo_lido):
-    sessoes = arquivo_lido.outline()
-    print(sessoes)
 
 #********************************************************************************#
 def pega_arquivos_pdf(caminho):

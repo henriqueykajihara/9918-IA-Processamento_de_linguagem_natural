@@ -1,4 +1,3 @@
-
 import read_pdf
 import os
 
@@ -6,7 +5,7 @@ import os
 def nivelValido(nivel):
     return ( nivel in ['0', '1', '2', '3'] )
 #********************************************************************************#
-def main_():
+def main():
     
     nivel = 99
     while nivel != '0':
@@ -26,7 +25,8 @@ def main_():
         if nivelValido(nivel):
             #diretorio_raiz_arquivos = "F:/9918_ia_trabalho2/arquivos/"
             diretorio_raiz_arquivos = os.getcwd()+"/arquivos/"
-            diretorio_txt = "F:/9918_ia_trabalho2/txt/"
+            #diretorio_txt = "F:/9918_ia_trabalho2/txt/"
+            diretorio_txt = diretorio_raiz_arquivos + "/txt/"
             if nivel == '1':
                 opcao_selecionada_string = '1 - Processamento de imagens'
                 opcao = diretorio_raiz_arquivos+"image/"
@@ -55,6 +55,7 @@ def main_():
                 opcao_processamento = input('Selecione a opção ou ZERO para sair: ')
                 if opcao_processamento == '1':
                     read_pdf.processa_transforma_arquivos_pdf( opcao, destino_txt )
+                    input("Pressione uma tecla para continuar...")
                 elif opcao_processamento == '2':
                     read_pdf.page_rank(destino_txt)
                 elif opcao_processamento == '0':
@@ -71,10 +72,7 @@ def main_():
             print('Opção ',nivel,' invalida!')
         #os.system('cls')
 
-def main():
-    read_pdf.processa_retorna_array_arquivos( "F:/9918_ia_trabalho2/arquivos/image/", "F:/9918_ia_trabalho2/txt/image/" )
-
 #********************************************************************************#
 if __name__ == "__main__":
     
-    main_()
+    main()
