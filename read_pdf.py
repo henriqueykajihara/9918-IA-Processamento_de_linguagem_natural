@@ -354,15 +354,17 @@ def page_rank(destino_txt, palavra_procurada):
     for arquivo in arquivos_txt:
         
         with open(destino_txt+arquivo, 'r', encoding="utf-8") as txt_aberto:
+            
             #print("\n"+arquivo)
             conteudo = txt_aberto.read()
             index = conteudo.splitlines()[0]
-            lista_index = re.findall(r'\[(\w+), (\d+)\]', index)
-            palavras_encontradas = []
-            for classificacao in lista_index:
-                palavras_encontradas.append([classificacao[0], int(classificacao[1])] )
-            
-            index_geral.append([arquivo,palavras_encontradas])
+            if not lista_vazia(conteudo):
+                lista_index = re.findall(r'\[(\w+), (\d+)\]', index)
+                palavras_encontradas = []
+                for classificacao in lista_index:
+                    palavras_encontradas.append([classificacao[0], int(classificacao[1])] )
+
+                index_geral.append([arquivo,palavras_encontradas])
     
     mostra_classificacao_se_palavra_encontrada(index_geral,palavra_procurada)
     return 
